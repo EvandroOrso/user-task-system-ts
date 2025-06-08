@@ -46,7 +46,13 @@ abstract class User {
         console.log(tasks);
     }
 
-    createTask(title: string, description?: string) {
+    abstract createTask(title: string, description?: string): void;
+    abstract deleteTask(id: number): void;
+}
+
+// Usuário do tipo Admin
+class Admin extends User { 
+    createTask(title: string, description?: string): void {
         taskIdCounter++;
         const task: Task = {
             id: taskIdCounter,
@@ -58,37 +64,50 @@ abstract class User {
         tasks.push(task);
     }
 
-    deleteTask(id: number): Task[] | void {
+    deleteTask(id: number): void { // Admin pode deletar qualquer tarefa
         tasks = tasks.filter(task => task.id !== id);
-        return tasks;
     }
-}
-
-// Usuário do tipo Admin
-class Admin extends User { 
-
 }
 
 // Usuário do tipo Usuário Comum
 class CommonUser extends User {
-    deleteTask(id: number): Task[] {
-        if(tasks[id].author !== this.name) {
-            console.log("You can't delete a task that is not yours!");
-            return tasks;
+    createTask(title: string, description?: string): void {
+        taskIdCounter++;
+        const task: Task = {
+            id: taskIdCounter,
+            title,
+            description,
+            status: TaskStatus.Pending,
+            author: this.name
+        };
+        tasks.push(task);
+    }
+
+    deleteTask(id: number): void {
+        const task = tasks.find(task => task.id === id); // Verifica se a tarefa existe
+
+        if (!task) {
+            console.log("Task not found.");
+            return;
         }
-        tasks = tasks.filter(task => task.id !== id);
-        return tasks;
+
+        if (task.author !== this.name) { // Valida a exclusão de acordo com o nome do autor
+            console.log("You can't delete a task that is not yours!");
+            return;
+        }
+
+        tasks = tasks.filter(task => task.id !== id); // Remove a tarefa
     }
 }
 
 // Usuário do tipo visitante
 class Guest extends User {
     createTask(): void {
-        console.log("You are a guest so you can't create tasks!");
+        console.log("You are a guest and cannot create tasks.");
     }
 
     deleteTask(id: number) {
-        console.log("You are a guest so you can't delete tasks!");
+        console.log("You are a guest and cannot delete tasks.");
     }
 }
 
